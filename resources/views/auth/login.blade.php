@@ -1,53 +1,35 @@
 @extends('layouts.app')
+@section('title','Login')
 
 @section('content')
-<div class="col-md-6 offset-md-3 mt-5">
-    <h2 class="fw-bold mb-4 text-center">Login</h2>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-4">
+        <h3 class="mb-3 fw-bold text-center">Sign in to apelsin.</h3>
 
-    {{-- Display validation errors --}}
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+        @if($errors->any())
+          <div class="alert alert-danger">
+            <ul class="mb-0">@foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach</ul>
+          </div>
+        @endif
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+        <form method="POST" action="{{ route('login') }}">
+          @csrf
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input name="email" type="email" class="form-control" value="{{ old('email') }}" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-control" required>
+          </div>
+          <button class="btn btn-accent w-100">Login</button>
+        </form>
 
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input 
-                type="email" 
-                id="email" 
-                name="email" 
-                class="form-control" 
-                value="{{ old('email') }}" 
-                required 
-                autofocus
-            >
-        </div>
-
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                class="form-control" 
-                required
-            >
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-
-    <p class="text-center mt-3">
-        Don’t have an account? 
-        <a href="{{ route('register') }}">Register here</a>
-    </p>
+        <p class="text-center mt-3 small">Don't have an account? <a href="{{ route('register') }}" class="text-accent">Register</a></p>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection

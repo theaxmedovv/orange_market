@@ -2,58 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wishlist;
-use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Wishlist;
 use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-    /**
-     * Display the authenticated user's wishlist.
-     * 
-     * GET /wishlist
-     */
     public function index()
     {
-        $items = Wishlist::where('user_id', Auth::id())
-            ->with(['product.brand', 'product.category'])
+        // Foydalanuvchining wishlist elementlarini olish
+        $wishlist = Wishlist::where('user_id', Auth::id())
+            ->with('product') // product bilan birga yuklash
             ->get();
 
-        return view('wishlist.index', compact('items'));
+        // View'ga yuborish
+        return view('wishlist.index', compact('wishlist'));
     }
 
-    /**
-     * Toggle a product in the wishlist (add/remove).
-     * 
-     * POST /wishlist/{product}
-     * 
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function toggle(Product $product)
+    public function toggle($productId)
     {
-        $userId = Auth::id();
-
-        $existing = Wishlist::where('user_id', $userId)
-            ->where('product_id', $product->id)
+        $wishlistItem = Wishlist::where('user_id', Auth::id())
+            ->where('product_id', $productId)
             ->first();
 
-        if ($existing) {
-            $existing->delete();
-            return response()->json(['added' => false, 'message' => 'Removed from wishlist']);
+        if ($wishlistItem) {
+            $wishlistItem->delete();
+            return back()->with('success', 'Product removed from wishlist.');
         }
 
         Wishlist::create([
-            'user_id' => $userId,
-            'product_id' => $product->id,
+            'user_id' => Auth::id(),
+            'product_id' => $productId,
         ]);
 
-        return response()->json(['added' => true, 'message' => 'Added to wishlist']);
+        return back()->with('success', 'Product added to wishlist.');
     }
 }

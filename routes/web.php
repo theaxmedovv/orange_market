@@ -8,22 +8,20 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Public Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application.
-| These routes are loaded by the RouteServiceProvider and assigned to
-| the "web" middleware group.
-|
 */
 
 // 🏠 HOME PAGE
 Route::get('/', [ProductController::class, 'index'])->name('home');
 
-// 🧾 AUTH ROUTES
+// 🧾 AUTH ROUTES (Login / Register)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
@@ -31,9 +29,21 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
+// 🚪 LOGOUT
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// 🔐 AUTHENTICATED USER ROUTES
+// 🏷️ PUBLIC CATEGORY & BRAND ROUTES
+Route::resource('categories', CategoryController::class)->only(['index']);
+Route::resource('brands', BrandController::class)->only(['index']);
+
+// 🛍 PUBLIC PRODUCT ROUTES
+Route::resource('products', ProductController::class)->only(['index', 'show']);
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated User Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     // 👤 PROFILE
     Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
@@ -52,21 +62,18 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// 🏷️ CATEGORY & BRAND — public index, admin restricted for create/delete
-Route::resource('categories', CategoryController::class)->only(['index']);
-Route::resource('brands', BrandController::class)->only(['index']);
+/*
+|--------------------------------------------------------------------------
+| Admin Panel Routes (Protected by auth + admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // 📊 Dashboard
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
-// 🛍 PRODUCTS
-Route::resource('products', ProductController::class)->only(['index', 'show']);
-
-
-// 🧭 ADMIN ROUTES (optional for admin panel)
-Route::middleware(['auth', 'isAdmin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
-
-    Route::resource('products', ProductController::class)->except(['show']);
+    // 🧱 CRUD for Admin
+    Route::resource('products', AdminProductController::class);
+    Route::resource('users', AdminUserController::class)->only(['index', 'destroy']);
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('brands', BrandController::class)->except(['show']);
 });

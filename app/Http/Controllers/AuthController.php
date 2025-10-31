@@ -15,16 +15,24 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
+{
+    $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('home');
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+
+        // 👇 Foydalanuvchi admin bo‘lsa admin panelga yo‘naltiramiz
+        if (Auth::user()->is_admin) {
+            return redirect()->route('admin.dashboard');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        // 👇 Aks holda oddiy user uchun home sahifaga
+        return redirect()->route('home');
     }
+
+    return back()->withErrors(['email' => 'Invalid credentials']);
+}
+
 
     public function showRegisterForm()
     {
